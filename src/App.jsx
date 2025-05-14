@@ -1,80 +1,77 @@
 import { useState } from 'react'
 import './App.css'
-import TaskItem from './TaskItem'
+import TodoItem from './TodoItem'
+import TaskForm from './TaskForm'
+import TaskStats from './TaskStats'
+import AnimatedBackground from './components/AnimatedBackground'
 
-function App() {
+function TodoApp() {
   const [tasks, setTasks] = useState([])
-  const [newTask, setNewTask] = useState('')
-  const [error, setError] = useState('')
 
-  const handleAddTask = () => {
-    const trimmedTask = newTask.trim()
-    if (trimmedTask === '') {
-      setError('La tarea no puede estar vacía.')
-      return
+  const handleAddTask = ({ text, date }) => {
+    if (tasks.some(task => task.text === text)) {
+      return false
     }
-    const isDuplicate = tasks.some(
-      (task) => task.text.trim().toLowerCase() === trimmedTask.toLowerCase()
-    )
-    if (isDuplicate) {
-      setError('La tarea ya existe.')
-      return
-    }
-    setTasks([...tasks, { 
-      id: Date.now(), 
-      text: trimmedTask,
-      createdAt: new Date().toISOString()
-    }])
-    setNewTask('')
-    setError('')
+    setTasks([
+      ...tasks,
+      {
+        id: Date.now(),
+        text,
+        completed: false,
+        date,
+        createdAt: new Date().toISOString()
+      }
+    ])
+    return true
   }
 
-  const handleKeyPress = (e) => {
-    if (e.key === 'Enter') {
-      handleAddTask()
-    }
+  const handleDeleteTask = (id) => {
+    setTasks(tasks.filter(task => task.id !== id))
   }
 
-  const handleDeleteTask = (index) => {
-    setTasks(tasks.filter((_, i) => i !== index))
+  const handleToggleTask = (id) => {
+    setTasks(tasks.map(task =>
+      task.id === id ? { ...task, completed: !task.completed } : task
+    ))
   }
 
   return (
-    <div className="app-container">
-      <h1>To Do List</h1>
-      <div className="input-container">
-        <input
-          type="text"
-          value={newTask}
-          onChange={(e) => { setNewTask(e.target.value); setError('') }}
-          onKeyPress={handleKeyPress}
-          placeholder="Ingresa una nueva tarea..."
-          className="task-input"
-        />
-        <button onClick={handleAddTask} className="add-button">
-          Agregar
-        </button>
-      </div>
-      {error && <div className="error-message">{error}</div>}
-      {tasks.length > 0 && (
-        <div className="task-counter">
-          {tasks.length} {tasks.length === 1 ? 'tarea' : 'tareas'}
+    <>
+      <AnimatedBackground />
+      <div className="app-container">
+        <div className="app-header">
+          <h1>TO-DO</h1>
+          <div className="developer-info">
+            <span>Hecho por: Rossbel Huaylla Huillca</span>
+            <span>Código: 183067</span>
+          </div>
         </div>
-      )}
-      <ul className="task-list">
-        {tasks.map((task, index) => (
-          <TaskItem
-            key={task.id}
-            task={task.text}
-            createdAt={task.createdAt}
-            onDelete={handleDeleteTask}
-            index={index}
-          />
-        ))}
-      </ul>
-    </div>
+        <TaskForm onAddTask={handleAddTask} />
+        {tasks.length > 0 && (
+          <>
+            <TaskStats tasks={tasks} />
+            <div className="task-list">
+              {tasks.map(task => (
+                <TodoItem
+                  key={task.id}
+                  task={task}
+                  onDelete={handleDeleteTask}
+                  onToggle={handleToggleTask}
+                />
+              ))}
+            </div>
+          </>
+        )}
+        {tasks.length === 0 && (
+          <div className="empty-state">
+            <p>No hay tareas pendientes</p>
+            <p className="empty-state-subtitle">¡Agrega una nueva tarea para comenzar!</p>
+          </div>
+        )}
+      </div>
+    </>
   )
 }
 
-export default App
+export default TodoApp
 
