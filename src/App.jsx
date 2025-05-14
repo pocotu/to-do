@@ -56,7 +56,7 @@ function TodoApp() {
                   key={task.id}
                   task={task}
                   onDelete={handleDeleteTask}
-                  onToggle={handleToggleTask}
+                  onToggleComplete={handleToggleTask}
                 />
               ))}
             </div>
